@@ -19,7 +19,6 @@ from langchain.chains import ConversationChain, ConversationalRetrievalChain, Re
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain.vectorstores import Pinecone
 from langchain.embeddings.openai import OpenAIEmbeddings
-from llama_index import GPTSimpleVectorIndex, download_loader
 
 from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI
@@ -27,7 +26,6 @@ from langchain import SerpAPIWrapper, LLMChain
 from typing import List, Union
 from langchain.schema import AgentAction, AgentFinish, HumanMessage
 from pathlib import Path
-from llama_index import download_loader
 
 import re
 
@@ -38,7 +36,6 @@ history = ChatMessageHistory()
 
 env_vars = [
     'OPENAI_API_KEY',
-    'SERPAPI_API_KEY',
     'ALCHEMY_API_KEY',
     'PINECONE_API_KEY',
     'PINECONE_ENVIRONMENT',
