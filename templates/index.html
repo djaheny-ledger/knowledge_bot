@@ -3,18 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <title>Knowledge Bot</title>
     <style>
+
+        @font-face {
+            font-family: 'HM Alpha Mono';
+            src: url('./fonts/BBALP00A.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         body {
+            background-repeat: no-repeat;
+            background-size: cover;
             display: flex;
             flex-direction: column;
             font-family: "Open Sans", sans-serif;
-            background-color: rgb(23, 23, 26);
-            color: rgba(255, 255, 255, 0.945);
+            background-color: white;
+            color: black;
             padding: 12px;
-            font-family: 'Press Start 2P', cursive;
-        }
+            --text-font-family: 'Inter', sans-serif;
+            --heading-font-family: 'HM Alpha Mono', sans-serif;    
+        } 
+
+        h1 {
+            font-family: var(--heading-font-family);
+            }
 
         button {
             display: flex;
@@ -106,6 +122,9 @@
             transform: translate(-2px, 2px);
         }
 
+        #submit-btn:disabled {
+            background: grey; // or any other style you want
+        }
 
         .response-container {
             margin-top: 16px;
@@ -173,25 +192,31 @@
             animation: typewriter 1s steps(50, end) forwards;
         }
 
+        p {
+            font-family: var(--text-font-family);
+        }
+
     </style>
 </head>
-<body>
-    <h1>Knowledge Bot&#128302;</h1>
+<body style="background-color: white; color: black; padding: 12px; font-family: 'Press Start 2P', cursive;">
+    <h1>LEDGER KNOWLEDGE BOT &#128302;</h1>
     <div class="conversation-wrapper">
         <div id="conversation-container"></div>
     </div>
     <form>
-        <label for="input">Type your question:</label>
+        <label for="input"><p><b>TYPE YOUR QUESTION:</b></p></label>
         <input type="text" name="input" id="input">
+        <div id="warning" style="display:none;color:red;margin-top: 8px; margin-bottom: 8px; font-size: small;">&#9888;&#65039;Please remove email/street addresses.</div>
         <input type="submit" value="Submit" id="submit-btn">
     </form>
+    
 
-    <div class="loading" style="display:none;">Loading...</div>
+    <div class="loading" style="display:none;"><p><b>Thinking...&#129300;</b></p></div>
 
 
     <section id="try-again">
         <a href="http://127.0.0.1:8000/gpt">
-            <button class="try-button"><b>New chat</b></button>
+            <button class="try-button">New chat</button>
         </a>
     </section>
 
@@ -204,17 +229,36 @@
     const fithEle = document.getElementById('try-again')
     fithEle.style.display = 'none'
 
-    function makeLinksClickable(text) {
-        var urlPattern = /((https?:\/\/)|(www\.))[^\s]+/ig;
-        return text.replace(urlPattern, function(match) {
-            if (match.slice(-1) === '.') {
-                match = match.slice(0, -1);
+    $(document).ready(function() {
+        var emailRegex = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+        var addressRegex = /\d+ [\w\s]{1,20}(street|st|drive|dr|avenue|ave|road|rd|rue|boulevard|avenue|chemin)\.?/i;
+        var warningDiv = document.getElementById('warning');
+        var submitBtn = document.getElementById('submit-btn');
+
+        document.getElementById('input').addEventListener('input', function(e) {
+            if (emailRegex.test(e.target.value) || addressRegex.test(e.target.value)) {
+                warningDiv.style.display = 'block';
+                submitBtn.disabled = true;
+            } else {
+                warningDiv.style.display = 'none';
+                submitBtn.disabled = false;
             }
-            var cleanedUrl = cleanUrlPatterns(match);
-            var prefix = /^https?:\/\//.test(cleanedUrl) ? '' : 'http://';
-            return '<a href="' + prefix + cleanedUrl + '" target="_blank">' + cleanedUrl + '</a>';
         });
-    }
+    });
+
+
+    // No longer needed since ChatGPT now outputs hyperlinks 
+    //function makeLinksClickable(text) {
+    //     var urlPattern = /((https?:\/\/)|(www\.))[^\s]+/ig;
+    //     return text.replace(urlPattern, function(match) {
+    //         if (match.slice(-1) === '.') {
+    //             match = match.slice(0, -1);
+    //         }
+    //         var cleanedUrl = cleanUrlPatterns(match);
+    //         var prefix = /^https?:\/\//.test(cleanedUrl) ? '' : 'http://';
+    //         return '<a href="' + prefix + cleanedUrl + '" target="_blank">' + cleanedUrl + '</a>';
+    //     });
+    // }
 
 
     function cleanUrlPatterns(url) {
@@ -268,9 +312,9 @@
                 response_div.innerHTML = text;
 
                 if (isTag) {
-                    setTimeout(typeNextChar, 10);
+                    setTimeout(typeNextChar, 5);
                 } else {
-                    setTimeout(typeNextChar, 10);
+                    setTimeout(typeNextChar, 5);
                 }
             } else {
                 if (typeof callback === "function") {
@@ -280,6 +324,15 @@
         }
 
         typeNextChar();
+    }
+
+    function makeLinksOpenInNewTab(input) {
+        var dom = new DOMParser().parseFromString(input, 'text/html');
+        var links = dom.getElementsByTagName('a');
+        for(var i=0; i<links.length; i++) {
+            links[i].setAttribute('target', '_blank');
+        }
+        return dom.body.innerHTML;
     }
 
 
@@ -302,14 +355,14 @@
     }
 
 
-    function updateUrls(text) {
-        var urlPattern = /((https?:\/\/)|(www\.))[^\s]+/ig;
-        return text.replace(urlPattern, function(match) {
-            var cleanedUrl = cleanUrlPatterns(match);
-            var prefix = /^https?:\/\//.test(cleanedUrl) ? '' : 'http://';
-            return '<a href="' + prefix + cleanedUrl + '" target="_blank">' + cleanedUrl + '</a>';
-        });
-    }
+    // function updateUrls(text) {
+    //     var urlPattern = /((https?:\/\/)|(www\.))[^\s]+/ig;
+    //     return text.replace(urlPattern, function(match) {
+    //         var cleanedUrl = cleanUrlPatterns(match);
+    //         var prefix = /^https?:\/\//.test(cleanedUrl) ? '' : 'http://';
+    //         return '<a href="' + prefix + cleanedUrl + '" target="_blank">' + cleanedUrl + '</a>';
+    //     });
+    // }
 
 
     $(function() {
@@ -317,6 +370,7 @@
             event.preventDefault();
             var input_text = $('#input').val();
             $('.loading').show();
+            $('#submit-btn').prop('disabled', true);
             $.ajax({
                 type: 'POST',
                 url: '/api',
@@ -333,9 +387,12 @@
 
                     // Convert chatbot_output to HTML using Showdown
                     var chatbot_output = conv.makeHtml(response.output);
-                   
+                    
                     // Make links clickable
-                    chatbot_output = makeLinksClickable(chatbot_output);
+                    //chatbot_output = makeLinksClickable(chatbot_output);
+
+                    //Make links open in new tab
+                    chatbot_output = makeLinksOpenInNewTab(chatbot_output);
 
                     updateConversation(user_input, chatbot_output);
                     $('#input').val('');
@@ -343,10 +400,15 @@
 
                 error: function() {
                     $('.loading').hide();
+                },
+
+                complete: function() {
+                    $('#submit-btn').prop('disabled', false);
                 }
             });
         });
     });
+
 
     fithEle.style.display = 'flex'
 </script>
