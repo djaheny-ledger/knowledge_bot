@@ -73,6 +73,9 @@ Begin!
 # Define Flask app
 app = Flask(__name__, static_folder='static')
 
+# Define user states
+user_states = {}
+
 # Define authentication function
 def authenticate(signature):
     w3 = Web3(Web3.HTTPProvider(os.environ['WEB3_PROVIDER']))
@@ -128,18 +131,17 @@ def react_description():
 
         res_query = index.query(xq, top_k=5, include_metadata=True)
 
-        contexts = [item['metadata']['text'] for item in res_query['matches']]
+        contexts = [item['metadata']['text'] for item in res_query['matches'] if item['score'] > 0.8]
 
-        augmented_query = "CONTEXT: " + "\n\n-----\n\n" + "\n\n---\n\n".join(contexts) + "\n\n-----\n\n"+ "QUESTION: " + "\n\n" + '"' + user_input + '" ' + "Please provide an answer to the question."
+        augmented_query = "CONTEXT: " + "\n\n-----\n\n" + "\n\n---\n\n".join(contexts) + "\n\n-----\n\n"+ "USER QUESTION: " + "\n\n" + '"' + user_input + '" ' + "\n\n" + "YOUR RESPONSE: "
 
         print(augmented_query)
 
         res = openai.ChatCompletion.create(
             temperature=0.0,
-            #model='gpt-4',
+            model='gpt-4',
             #model="gpt-3.5-turbo-16k",
-            model="gpt-3.5-turbo-0613",
-            #model="gpt-3.5-turbo",
+            #model="gpt-3.5-turbo-0613",
             messages=[
                 {"role": "system", "content": primer},
                 {"role": "user", "content": augmented_query}
